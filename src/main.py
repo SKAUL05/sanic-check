@@ -1,7 +1,6 @@
 from sanic import Sanic
 from sanic.response import json, text, html
 from sanic.log import logger
-
 from jinja2 import Environment, PackageLoader, select_autoescape
 
 
