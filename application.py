@@ -2,9 +2,15 @@ from sanic import Sanic
 from sanic.response import json, text
 from sanic.log import logger
 from requests import get
+from sanic_jinja2 import SanicJinja2
 import json as js
+import os
 
-app = Sanic()
+app = Sanic(__name__)
+jinja = SanicJinja2(app)
+current_directory = os.path.dirname(os.path.abspath("application.py"))
+static_directory = os.path.join(current_directory, 'static')
+app.static('', static_directory)
 search_data = {}
 
 def filter_country_data(cy_data):
@@ -14,30 +20,17 @@ def filter_country_data(cy_data):
     return search_data
 
 
-def country_stats(search_data,ccode):
-    info = {}
-    if ccode in search_data:
-        return search_data[ccode]
-    else:
-        return {}
 
-
-@app.route("/countries")
+@app.route("/")
 async def countries(request):
     logger.info("Countries")
     cy_data = js.loads(get("https://restcountries.eu/rest/v2/all").text)
-    logger.info(len(cy_data))
-    search_data = filter_country_data(cy_data)
-    return json(search_data)
+    # search_data = filter_country_data(cy_data)
+    # print(search_data)
+    return jinja.render("index.html", request, countries=cy_data)
     
-@app.route("/country-info")
-async def info(request):
-    in_data = country_stats(search_data,"AFG")
-    return json(in_data)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000, debug=True)
 
-@app.route("/")
-async def test(request):
-    logger.info("Initialized")
-    ip = get('https://api.ipify.org').text
-    return json({"IP": ip})
+
 
